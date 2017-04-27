@@ -1,0 +1,25 @@
+html, body, #root, .App {
+  height: 100%;
+  width: 100%;
+}
+
+* {
+  box-sizing: content-box;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+}
+
+.App-panelSplit {
+  height: 3px;
+  background: #CCC;
+  cursor: ns-resize;
+  position: relative;
+}
+
+.App-panelDetails {
+  flex-grow: 1;
+  position: relative;
+}

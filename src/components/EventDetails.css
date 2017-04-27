@@ -1,0 +1,102 @@
+.EventDetails {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.EventDetails-sql {
+  border-bottom: 3px solid #DDD;
+}
+.EventDetails-sql,
+.EventDetails-sql .CodeMirror {
+  height: 70px;
+}
+
+.EventDetails-stackAndCode {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  position: relative;
+}
+
+.EventDetails-stack {
+  width: 500px;
+  overflow: hidden;
+  border-right: 1px solid #CCC;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.EventDetails-code {
+  flex-grow: 1;
+  position: relative;
+}
+
+.EventDetails-codeFilename {
+  padding: 6px;
+  border-bottom: 1px solid #DDD;
+}
+
+.EventDetails-ruby .CodeMirror {
+  height: 100%;
+}
+
+.StackTrace {
+  overflow: scroll;
+  height: 100%;
+  position: relative;
+}
+
+.StackTrace input[type=radio] {
+  display: none;
+}
+
+.StackTrace input[type=radio]:checked + label {
+  color: #000;
+}
+.StackTrace input[type=radio]:checked + label::before,
+.StackTrace label:hover::before {
+	border-style: solid;
+	border-width: 4px 4px 0 0;
+	content: '';
+	display: block;
+	height: 6px;
+	position: absolute;
+	top: 50%;
+	width: 6px;
+	left: 2px;
+	transform: rotate(45deg) translateY(-6px);
+}
+
+.StackTrace label {
+  display: block;
+  padding: 10px 10px 10px 30px;
+  color: #555;
+  position: relative;
+  cursor: pointer;
+}
+
+.StackTrace label:hover::before {
+  color: #BBB;
+}
+
+.StackTrace input[type=radio]:checked + label::before {
+  color: #000;
+}
+
+.StackTrace fieldset {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.StackTrace-call {
+  font-size: 12px;
+  border-bottom: 1px solid #DDD;
+}
+
+.StackTrace-call:nth-child(2n) {
+  background: #F8F8F8;
+}
