@@ -1,6 +1,6 @@
 import ProbeEventMock from './ProbeEventMock';
 
-const events = [ ProbeEventMock ];
+const events = window.debugProbeEventMock = ProbeEventMock;
 let listeners = [];
 
 // const addEvent = event => {

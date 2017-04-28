@@ -4,6 +4,7 @@ import './EventDetails.css';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/ruby/ruby';
 import 'codemirror/mode/sql/sql';
+import PanelSplit from './PanelSplit';
 
 const CODE_MIRROR_OPTIONS = {
   lineNumbers: true,
@@ -11,12 +12,12 @@ const CODE_MIRROR_OPTIONS = {
   readOnly: true
 }
 
-const CODE_MIRROR_SQL_OPTIONS = {
+const SQL_CODE_MIRROR_OPTIONS = {
   ...CODE_MIRROR_OPTIONS,
   mode: 'text/x-pgsql'
 }
 
-const CODE_MIRROR_RUBY_OPTIONS = {
+const RUBY_CODE_MIRROR_OPTIONS = {
   ...CODE_MIRROR_OPTIONS,
   mode: 'ruby'
 }
@@ -42,8 +43,6 @@ const StackTrace = ({ callStack, selected, onSelect }) => (
   </form>
 );
 
-
-// /Users/peter.wong/projects/hipaatitis/app/views/shared/_appointments.erb:4:in `group_by'
 const getFilename = call => call.split(/:\d+:in /)[0];
 
 export default class extends Component {
@@ -53,10 +52,9 @@ export default class extends Component {
     this.state = { selectedCall: 0 };
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.event !== this.props.event) {
+  componentWillReceiveProps({ event }) {
+    if (event !== this.props.event)
       this.setState({ selectedCall: 0 });
-    }
   }
 
   handleSelectCall(selectedCall) {
@@ -69,29 +67,42 @@ export default class extends Component {
     return (
       <div className='EventDetails'>
         {event &&
-          <CodeMirror className='EventDetails-sql' value={event.sql} options={CODE_MIRROR_SQL_OPTIONS} />
-        }
-        {event &&
-          <div className='EventDetails-stackAndCode'>
-            <div className='EventDetails-stack'>
-              <StackTrace
-                callStack={event.caller}
-                selected={selectedCall}
-                onSelect={this.handleSelectCall}
-              />
-            </div>
-            <div className='EventDetails-code'>
-              <div className='EventDetails-codeFilename'>{getFilename(event.caller[selectedCall])}</div>
-              <CodeMirror className='EventDetails-ruby' value={
+          <PanelSplit
+            initialSize={40}
+            a={<CodeMirror className='EventDetails-sql' value={event.sql} options={SQL_CODE_MIRROR_OPTIONS} />}
+            b={
+              <PanelSplit
+                orientation='horizontal'
+                a={
+                  <div className='EventDetails-stack'>
+                    <div className='EventDetails-panelHeader'>Stack</div>
+                    <StackTrace
+                      callStack={event.caller}
+                      selected={selectedCall}
+                      onSelect={this.handleSelectCall}
+                    />
+                  </div>
+                }
+                b={
+                  <div className='EventDetails-code'>
+                    <div className='EventDetails-panelHeader'>{getFilename(event.caller[selectedCall])}</div>
+                    <CodeMirror
+                      className='EventDetails-ruby'
+                      options={RUBY_CODE_MIRROR_OPTIONS}
+                      value={
 `module Better
   class Call
     def Saul
       puts "LWYR UP"
     end
   end
-end`} options={CODE_MIRROR_RUBY_OPTIONS} />
-            </div>
-          </div>
+end`
+                      }/>
+                  </div>
+                }
+              />
+            }
+          />
         }
       </div>
     );

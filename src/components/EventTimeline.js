@@ -6,74 +6,86 @@ import { DataSet, Timeline } from 'vis/dist/vis-timeline-graph2d.min.js';
 
 const flatten = arr => [].concat(...arr);
 
-const findEvent = (events, id) =>
-  id === undefined
-    ? undefined
-    : flatten(events.map(e => e.events)).find(e =>
-        e.time === id // TODO: need an event.id
-      );
+// TODO: Replace new event id
+const eventId = e =>
+  `${e.time}:${e.transaction_id}:${e.duration}`
 
 export default class extends Component {
   constructor() {
     super();
 
-    this.handleEventsUpdated = events => this.setState({ events });
+    this.handleEventsUpdated = eventSets => this.setState({ eventSets });
     ProbeEvents.on(this.handleEventsUpdated);
-
     this.handleSelect = this.handleSelect.bind(this);
-
-    this.state = { events: ProbeEvents.events };
+    this.state = { eventSets: ProbeEvents.events };
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return (
-      nextProps.height !== this.props.height ||
-      nextState.events !== this.state.events
-    );
+    return nextState.eventSets !== this.state.eventSets;
   }
 
   componentDidMount() {
-    const timeline = this.timeline = new Timeline(this.root, this.timelineItems, {
-      height: '100%'
+    this.timeline = new Timeline(this.root);
+    this.timeline.setOptions({
+      height: '100%',
+      stack: false,
+      orientation: {
+        axis: 'bottom',
+        item: 'top'
+      }
     });
-    timeline.on('select', this.handleSelect);
+    this.timeline.on('select', this.handleSelect);
+    this.componentDidUpdate();
   }
 
   handleSelect({ items }) {
-    const { events } = this.state;
     if (this.props.onSelect) {
-      const event = findEvent(events, items[0]);
-      setTimeout(() => this.props.onSelect(event), 100);
+      const event = this.events.find(e => eventId(e) === items[0]);
+      setTimeout(() => this.props.onSelect(event), 0);
     }
   }
 
   get timelineItems() {
-    const { events } = this.state;
-    return new DataSet(flatten(
-      events.map(({ duration, start_time, params, events }) => [
-        {
-          id: start_time,
-          start: (start_time*1000.0),
-          end: (start_time*1000.0 + duration),
-          content: `${params.controller}#${params.action}`,
-          type: 'background'
-        },
-        ...events.map(({ time, elapsed, end }) => {
-          const start = Date.parse(time);
-          const _end = Date.parse(end);
-          return {
-            id: time, // TODO: need an event.id
-            start,
-            end: _end,
-            content: "sql"
-          }
-        })
-      ])
-    ));
+    const { eventSets } = this.state;
+    return new DataSet(
+      flatten(
+        eventSets.map(({ duration, start_time, params: { controller, action }, events }) => [
+          {
+            id: start_time,
+            start: (start_time*1000.0),
+            end: (start_time*1000.0 + duration),
+            content: `${controller}#${action}`,
+            type: 'background',
+            className: 'EventTimeline-eventSet',
+            align: 'center'
+          },
+          ...events.map(e => ({
+            id: eventId(e),
+            start: Date.parse(e.time),
+            end: Date.parse(e.end),
+            group: e.sql
+          }))
+        ])
+      )
+    );
+  }
+
+  get events() {
+    return flatten(this.state.eventSets.map(({ events }) => events));
+  }
+
+  get timelineGroups() {
+    const groupSet = new Set(this.events.map(e => e.sql));
+    const groups = new DataSet();
+    for (let key of groupSet.keys()) {
+      groups.add({ id: key, content: key.slice(0, 30), style: 'font-size: 12px' });
+    }
+    return groups;
   }
 
   componentDidUpdate() {
-    this.timeline.setData({ items: this.timelineItems });
+    this.timeline.setItems(this.timelineItems);
+    this.timeline.setGroups(this.timelineGroups);
   }
 
   componentWillUnmount() {

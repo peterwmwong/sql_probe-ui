@@ -1,4 +1,7 @@
 .EventTimeline {
-  background: #EEE;
   position: relative;
+}
+
+.EventTimeline-eventSet .vis-item-content {
+  bottom: 0px;
 }
